@@ -27,6 +27,9 @@ class HelpdeskTicket(models.Model):
         store=True,
         index=True,
     )
+    assigned_user_id = fields.Many2one(
+        comodel_name="res.users",
+    )
     is_new_stage = fields.Boolean(compute="_compute_is_new_stage")
 
     @api.model
@@ -122,6 +125,8 @@ class HelpdeskTicket(models.Model):
             raise models.UserError(_("Activity Type is not set!"))
         if not self.date_deadline:
             raise models.UserError(_("Date Deadline is not set!"))
+        if not self.assigned_user_id:
+            raise models.UserError(_("Assigned User is not set!"))
 
     def perform_action(self):
         """Perform action for ticket"""
@@ -136,7 +141,7 @@ class HelpdeskTicket(models.Model):
                 date_deadline=self.date_deadline,
                 activity_type_id=self.source_activity_type_id.id,
                 ticket_id=self.id,
-                user_id=self.user_id.id,
+                user_id=self.assigned_user_id.id,
             )
             self.set_next_stage()
         except Exception as e:

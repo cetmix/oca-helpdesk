@@ -33,6 +33,7 @@ class TestHelpdeskTicket(TestHelpdeskTicketBase):
                 "record_ref": f"res.partner,{self.test_partner.id}",
                 "source_activity_type_id": self.activity_type_meeting.id,
                 "date_deadline": Date.today(),
+                "assigned_user_id": self.env.user.id,
             }
         )
         ticket.perform_action()
@@ -62,6 +63,7 @@ class TestHelpdeskTicket(TestHelpdeskTicketBase):
                 "record_ref": f"res.partner,{self.test_partner.id}",
                 "source_activity_type_id": self.activity_type_meeting.id,
                 "date_deadline": Date.today(),
+                "assigned_user_id": self.env.user.id,
             }
         )
 
@@ -168,6 +170,16 @@ class TestHelpdeskTicket(TestHelpdeskTicketBase):
 
         ticket.date_deadline = Date.today()
 
+        with self.assertRaises(UserError) as error:
+            ticket.perform_action()
+        self.assertEqual(
+            error.exception.args[0],
+            "Assigned User is not set!",
+            "Errors must be the same",
+        )
+
+        ticket.assigned_user_id = self.env.user
+
         action = ticket.perform_action()
 
         self.assertDictEqual(
@@ -193,7 +205,7 @@ class TestHelpdeskTicket(TestHelpdeskTicketBase):
                     "date_deadline": ticket.date_deadline,
                     "activity_type_id": ticket.source_activity_type_id.id,
                     "ticket_id": ticket.id,
-                    "user_id": ticket.user_id.id,
+                    "user_id": self.env.user.id,
                 }
             ],
         )
